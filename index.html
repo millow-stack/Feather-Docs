@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#09090b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="LightPDF - 100% Client-Side, Lightweight, Offline Browser-Based PDF & DOCX Viewer SPA.">
+  <meta property="og:title" content="LightPDF — Modern Offline Document Viewer">
+  <meta property="og:description" content="View, annotate, search PDF and DOCX documents entirely in your browser.">
+  <meta property="og:type" content="website">
+
+  <title>LightPDF — Modern Offline Document Viewer</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="theme-dark">
+
+  <div class="app-container">
+    <!-- Apple HIG Glassmorphic Header Toolbar -->
+    <header class="toolbar" id="toolbar">
+      <!-- Left: Sidebar Toggle + Navigation -->
+      <div class="toolbar-group">
+        <button class="btn btn-icon" id="sidebarToggleBtn" title="Toggle Sidebar">
+          <i class="fa-solid fa-sidebar-flip"></i>
+        </button>
+        <div class="divider"></div>
+        <div class="segmented-control">
+          <button class="btn btn-icon" id="prevPageBtn" title="Previous Page" disabled>
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div class="page-indicator">
+            <input type="number" class="page-input" id="pageInput" value="0" min="1">
+            <span id="pageCount" style="color:var(--text-dim)">out of 0</span>
+          </div>
+          <button class="btn btn-icon" id="nextPageBtn" title="Next Page" disabled>
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Center: Zoom & View -->
+      <div class="toolbar-group">
+        <div class="segmented-control">
+          <button class="btn btn-icon" id="zoomOutBtn" title="Zoom Out">
+            <i class="fa-solid fa-minus"></i>
+          </button>
+          <button class="btn" id="zoomFitBtn" title="Fit to Width">
+            <span id="zoomValue">100%</span>
+          </button>
+          <button class="btn btn-icon" id="zoomInBtn" title="Zoom In">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+        <button class="btn btn-icon desktop-only" id="rotateBtn" title="Rotate">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+        <button class="btn btn-icon" id="annoToggleBtn" title="Annotate">
+          <i class="fa-solid fa-pen-nib"></i>
+        </button>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="toolbar-group">
+        <button class="btn btn-icon" id="themeBtn" title="Theme">
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+        <div class="divider desktop-only"></div>
+        <button class="btn btn-icon desktop-only" id="shareBtn" title="Share">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i>
+        </button>
+        <button class="btn btn-icon desktop-only" id="printBtn" title="Print">
+          <i class="fa-solid fa-print"></i>
+        </button>
+        <button class="btn btn-icon desktop-only" id="downloadBtn" title="Download">
+          <i class="fa-solid fa-download"></i>
+        </button>
+        <button class="btn btn-icon desktop-only" id="infoBtn" title="Info">
+          <i class="fa-solid fa-circle-info"></i>
+        </button>
+        <button class="btn btn-icon" id="fullscreenBtn" title="Fullscreen">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Multi-Tab Bar with Open File Button -->
+    <div class="tabs-bar" id="tabsContainer">
+      <button class="tab-open-btn" id="openFileBtn">
+        <i class="fa-solid fa-plus"></i>
+        <span>Open File</span>
+      </button>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple style="display:none">
+
+    <!-- Workspace -->
+    <div class="workspace">
+      <!-- Sidebar -->
+      <aside class="sidebar collapsed" id="sidebar">
+        <div class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="tabThumbs">
+            <i class="fa-solid fa-border-all"></i>
+            <span>Pages</span>
+          </button>
+          <button class="tab-btn" data-tab="tabOutline">
+            <i class="fa-solid fa-list-ul"></i>
+            <span>Outline</span>
+          </button>
+          <button class="tab-btn" data-tab="tabSearch">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Search</span>
+          </button>
+        </div>
+        <div class="sidebar-content">
+          <div class="sidebar-panel active" id="tabThumbs">
+            <div class="thumbnails-grid" id="thumbsContainer"></div>
+          </div>
+          <div class="sidebar-panel" id="tabOutline">
+            <ul class="outline-tree" id="outlineTree"></ul>
+          </div>
+          <div class="sidebar-panel" id="tabSearch">
+            <div class="search-box">
+              <input type="text" class="input-text" id="searchInput" placeholder="Search text…">
+              <button class="btn btn-primary" id="searchBtn">Find</button>
+            </div>
+            <div class="search-results-list" id="searchResults"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Stage -->
+      <main class="stage" id="stage">
+        <!-- Annotation Floating Toolbar -->
+        <div class="annotation-bar hidden" id="annotationBar">
+          <button class="btn btn-icon" id="toolPen" title="Pen"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-icon" id="toolHighlight" title="Highlight"><i class="fa-solid fa-highlighter"></i></button>
+          <button class="btn btn-icon" id="toolEraser" title="Eraser"><i class="fa-solid fa-eraser"></i></button>
+          <div class="divider"></div>
+          <input type="color" id="colorPicker" class="color-picker" value="#ffffff" title="Color">
+          <select id="strokeWidthSelect" class="btn" style="padding:4px 8px;" title="Size">
+            <option value="2">2px</option>
+            <option value="4" selected>4px</option>
+            <option value="8">8px</option>
+            <option value="12">12px</option>
+          </select>
+          <button class="btn" id="clearAnnoBtn" style="color:var(--danger)"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+          <i class="fa-solid fa-cloud-arrow-up empty-icon"></i>
+          <h2 class="empty-title">Open a Document</h2>
+          <p class="empty-desc">Drag & drop PDF or DOCX files here.<br>100% offline, serverless, private.</p>
+          <button class="btn btn-primary" id="samplePdfBtn" style="margin-top:12px">
+            <i class="fa-solid fa-play"></i>
+            <span>Try Sample PDF</span>
+          </button>
+        </div>
+
+        <div class="pages-container" id="pagesContainer" style="display:none"></div>
+        <div class="toast-status" id="toastStatus" style="display:none"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Document Info Modal -->
+  <div class="modal-overlay" id="infoModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-circle-info"></i> Document Properties</h3>
+        <button class="btn btn-icon" id="closeInfoModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="metadata-grid" id="metadataContent"></div>
+    </div>
+  </div>
+
+  <!-- Password Modal -->
+  <div class="modal-overlay" id="passwordModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-lock"></i> Encrypted Document</h3>
+        <button class="btn btn-icon" id="closePasswordModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:12px">This PDF is password protected.</p>
+      <div class="search-box">
+        <input type="password" class="input-text" id="pdfPasswordInput" placeholder="Enter password…">
+        <button class="btn btn-primary" id="submitPasswordBtn">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('[PWA] SW registered:', reg.scope))
+          .catch(err => console.warn('[PWA] SW failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "LightPDF — Document Viewer",
+  "short_name": "LightPDF",
+  "description": "Lightweight, Serverless, Fast Browser-Based PDF & DOCX Viewer with Multi-Tab and Offline Support",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "file_handlers": [
+    {
+      "action": "./index.html",
+      "accept": {
+        "application/pdf": [".pdf"],
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"]
+      }
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf_viewer.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
